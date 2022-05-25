@@ -1,0 +1,147 @@
+import { AETOEvent } from "./event.interface";
+import { MONTH } from "./months.constant";
+import { readFileSync } from "fs";
+const pdfParse = require("pdf-parse");
+
+export class EventService {
+  constructor() {}
+
+  async getEventFromDocument(pdfPatch: string): Promise<AETOEvent> {
+    const buffer = readFileSync(pdfPatch);
+    const data = await pdfParse(buffer);
+
+    const documentText: String = data.text;
+    const splitedDocument = documentText.split("\n").map((line) => line.trim());
+
+    const event: AETOEvent = {
+      name: this.getName(splitedDocument),
+      description: this.getDescription(splitedDocument),
+      details: this.getDetails(splitedDocument),
+      location: this.getLocation(splitedDocument),
+      schedule: this.getSchedule(splitedDocument),
+      places: this.getPlaces(splitedDocument),
+      ...this.getEventDate(splitedDocument),
+    };
+
+    return event;
+  }
+
+  getUnifiedDescription(event: AETOEvent): string {
+    return `
+${event.description}
+
+${event.schedule}
+
+👀 ${event.details}
+
+🪑 ${event.places} plazas
+
+
+ℹ️ Consulta toda la info en https://juventud.malaga.eu/es/actividades-y-programas-00001/ocio/alterna-en-tu-ocio/`;
+  }
+
+  private getIndex(array: String[], toSearch: string) {
+    const index = array.findIndex((element) => element.includes(toSearch));
+    if (index === -1) {
+      console.warn(array);
+      throw new Error("Not element finded for: " + toSearch);
+    }
+    return index;
+  }
+
+  private sliceAndJoin(array: String[], start: number, end: number): string {
+    const sliced = [...array].slice(start, end);
+    // Remove unnecesary spaces.
+    return sliced.join(" ").replace(/\s+/g, " ").trim();
+  }
+
+  private getName(splitedDocument: String[]): String {
+    const index = this.getIndex(splitedDocument, "Descripción");
+    return splitedDocument[index - 1];
+  }
+
+  private getDescription(splitedDocument: String[]): String {
+    const startIndex = this.getIndex(splitedDocument, "Descripción") + 2;
+    const endIndex = this.getIndex(splitedDocument, "Fecha") - 1;
+
+    const description = this.sliceAndJoin(
+      splitedDocument,
+      startIndex,
+      endIndex
+    );
+    return description;
+  }
+
+  private getSchedule(splitedDocument: String[]): string {
+    const startIndex = this.getIndex(splitedDocument, "Información") + 1;
+    const endIndex = this.getIndex(splitedDocument, "Observaciones") - 1;
+
+    const schedule = [...splitedDocument]
+      .slice(startIndex, endIndex)
+      .map((line) => {
+        line = line.replaceAll("", "-");
+        line = line.replace(/\s+/g, " ");
+        return line;
+      })
+      .join("\n")
+      .trim();
+
+    return schedule;
+  }
+
+  private getLocation(splitedDocument: String[]): String {
+    const startIndex = this.getIndex(splitedDocument, "Lugar realización") + 2;
+    const endIndex = this.getIndex(splitedDocument, "Información");
+
+    const location = this.sliceAndJoin(splitedDocument, startIndex, endIndex);
+    return location;
+  }
+
+  private getDetails(splitedDocument: String[]): String {
+    const startIndex = this.getIndex(splitedDocument, "Materiales") + 1;
+    const endIndex = this.getIndex(splitedDocument, "Requisitos de");
+
+    const details = this.sliceAndJoin(splitedDocument, startIndex, endIndex);
+    return details;
+  }
+
+  private getPlaces(splitedDocument: String[]): number {
+    const startIndex = this.getIndex(splitedDocument, "Horario y plazas") + 1;
+    const endIndex = this.getIndex(splitedDocument, "Lugar realización") - 1;
+
+    const places = this.sliceAndJoin(splitedDocument, startIndex, endIndex);
+    return +places.replace("plazas", "");
+  }
+
+  private getEventDate(splitedDocument: String[]): {
+    startDate: Date;
+    endDate: Date;
+  } {
+    const index = this.getIndex(splitedDocument, "Realización:") + 1;
+    const index2 = this.getIndex(splitedDocument, "Lugar realización") - 1;
+
+    const splitTimes = splitedDocument[index2].split(" ").filter(String);
+    const startHour = splitTimes[1].replace("h", ":").trim();
+    const endHour = splitTimes[3].replace("h", ":").trim();
+
+    const date = splitedDocument[index].split(" ").filter(String);
+
+    //@ts-ignore
+    const month = MONTH[date[3]];
+    const day = date[1];
+    const year = date[5];
+
+    const startDate = new Date(`${month} ${day} ${year} ${startHour}`);
+    const endDate = new Date(`${month} ${day} ${year} ${endHour}`);
+
+    // End day is next
+    if (endHour < startHour) {
+      endDate.setDate(endDate.getDate() + 1);
+    }
+
+    return {
+      startDate,
+      endDate,
+    };
+  }
+}
