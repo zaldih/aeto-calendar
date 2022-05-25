@@ -1,5 +1,7 @@
 # Calendario Alterna en tu Ocio
 
+![header ](./docs/header.png)
+
 _Disclaimer: este proyecto es ajeno a la organización responsable del programa._
 
 Este proyecto analiza la web del proyecto "Alterna en tu Ocio" para obtener las próximas actividades programadas y las agrega automáticamente a un Calendario de Google con todos los detalles.
