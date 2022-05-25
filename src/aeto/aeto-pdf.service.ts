@@ -1,9 +1,9 @@
-import { AETOEvent } from "./event.interface";
-import { MONTH } from "./months.constant";
+import { AETOEvent } from "./aeto.interface";
+import { MONTH } from "../shared/months.constant";
 import { readFileSync } from "fs";
 const pdfParse = require("pdf-parse");
 
-export class EventService {
+export class AetoPdfService {
   constructor() {}
 
   async getEventFromDocument(pdfPatch: string): Promise<AETOEvent> {

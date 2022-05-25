@@ -1,15 +1,18 @@
-import { CalendarEvent, CalendarEventFromGoogle } from "./calendar.interface";
+import {
+  CalendarEvent,
+  CalendarEventFromGoogle,
+} from "./calendar/calendar.interface";
 
-import { AETOEvent } from "./event.interface";
-import { AetoService } from "./aeto.service";
-import { CalendarService } from "./calendar.service";
-import { EventService } from "./event.service";
+import { AETOEvent } from "./aeto/aeto.interface";
+import { AetoPdfService } from "./aeto/aeto-pdf.service";
+import { AetoService } from "./aeto/aeto.service";
+import { CalendarService } from "./calendar/calendar.service";
 import { readdirSync } from "fs";
 
 export class MainController {
   constructor(
     private aetoService: AetoService,
-    private eventService: EventService,
+    private eventService: AetoPdfService,
     private calendarService: CalendarService
   ) {}
 

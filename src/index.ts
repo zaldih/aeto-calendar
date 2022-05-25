@@ -1,26 +1,29 @@
 import { existsSync, mkdirSync } from "fs";
 
-import { AetoService } from "./aeto.service";
-import { CalendarService } from "./calendar.service";
-import { EventService } from "./event.service";
+import { AetoPdfService } from "./aeto/aeto-pdf.service";
+import { AetoService } from "./aeto/aeto.service";
+import { CalendarService } from "./calendar/calendar.service";
 import { MainController } from "./main.controller";
 
 require("dotenv").config();
 
 console.log("Start");
 checkPrerequirements();
+bootstrap();
 
-const aetoService = new AetoService();
-const eventService = new EventService();
-const calendarService = new CalendarService();
+function bootstrap() {
+  const aetoService = new AetoService();
+  const aetoPdfService = new AetoPdfService();
+  const calendarService = new CalendarService();
 
-const mainController = new MainController(
-  aetoService,
-  eventService,
-  calendarService
-);
+  const mainController = new MainController(
+    aetoService,
+    aetoPdfService,
+    calendarService
+  );
 
-mainController.init();
+  mainController.init();
+}
 
 function checkPrerequirements() {
   const dataFolder = "data";
