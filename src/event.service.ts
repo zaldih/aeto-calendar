@@ -10,7 +10,7 @@ export class EventService {
     const buffer = readFileSync(pdfPatch);
     const data = await pdfParse(buffer);
 
-    const documentText: String = data.text;
+    const documentText: string = data.text;
     const splitedDocument = documentText.split("\n").map((line) => line.trim());
 
     const event: AETOEvent = {
@@ -40,7 +40,7 @@ ${event.schedule}
 ℹ️ Consulta toda la info en https://juventud.malaga.eu/es/actividades-y-programas-00001/ocio/alterna-en-tu-ocio/`;
   }
 
-  private getIndex(array: String[], toSearch: string) {
+  private getIndex(array: string[], toSearch: string) {
     const index = array.findIndex((element) => element.includes(toSearch));
     if (index === -1) {
       console.warn(array);
@@ -49,18 +49,18 @@ ${event.schedule}
     return index;
   }
 
-  private sliceAndJoin(array: String[], start: number, end: number): string {
+  private sliceAndJoin(array: string[], start: number, end: number): string {
     const sliced = [...array].slice(start, end);
     // Remove unnecesary spaces.
     return sliced.join(" ").replace(/\s+/g, " ").trim();
   }
 
-  private getName(splitedDocument: String[]): String {
+  private getName(splitedDocument: string[]): string {
     const index = this.getIndex(splitedDocument, "Descripción");
     return splitedDocument[index - 1];
   }
 
-  private getDescription(splitedDocument: String[]): String {
+  private getDescription(splitedDocument: string[]): string {
     const startIndex = this.getIndex(splitedDocument, "Descripción") + 2;
     const endIndex = this.getIndex(splitedDocument, "Fecha") - 1;
 
@@ -72,7 +72,7 @@ ${event.schedule}
     return description;
   }
 
-  private getSchedule(splitedDocument: String[]): string {
+  private getSchedule(splitedDocument: string[]): string {
     const startIndex = this.getIndex(splitedDocument, "Información") + 1;
     const endIndex = this.getIndex(splitedDocument, "Observaciones") - 1;
 
@@ -89,7 +89,7 @@ ${event.schedule}
     return schedule;
   }
 
-  private getLocation(splitedDocument: String[]): String {
+  private getLocation(splitedDocument: string[]): string {
     const startIndex = this.getIndex(splitedDocument, "Lugar realización") + 2;
     const endIndex = this.getIndex(splitedDocument, "Información");
 
@@ -97,7 +97,7 @@ ${event.schedule}
     return location;
   }
 
-  private getDetails(splitedDocument: String[]): String {
+  private getDetails(splitedDocument: string[]): string {
     const startIndex = this.getIndex(splitedDocument, "Materiales") + 1;
     const endIndex = this.getIndex(splitedDocument, "Requisitos de");
 
@@ -105,7 +105,7 @@ ${event.schedule}
     return details;
   }
 
-  private getPlaces(splitedDocument: String[]): number {
+  private getPlaces(splitedDocument: string[]): number {
     const startIndex = this.getIndex(splitedDocument, "Horario y plazas") + 1;
     const endIndex = this.getIndex(splitedDocument, "Lugar realización") - 1;
 
@@ -113,7 +113,7 @@ ${event.schedule}
     return +places.replace("plazas", "");
   }
 
-  private getEventDate(splitedDocument: String[]): {
+  private getEventDate(splitedDocument: string[]): {
     startDate: Date;
     endDate: Date;
   } {

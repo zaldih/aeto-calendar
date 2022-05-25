@@ -1,10 +1,10 @@
 export interface AETOEvent {
-  name: String;
-  location: String;
+  name: string;
+  location: string;
   startDate: Date;
   endDate: Date;
-  description: String;
-  schedule: String;
-  details: String;
+  description: string;
+  schedule: string;
+  details: string;
   places: number;
 }

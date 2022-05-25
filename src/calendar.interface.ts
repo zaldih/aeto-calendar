@@ -1,6 +1,6 @@
 export interface CalendarEvent {
-  summary: String;
-  description: String;
+  summary: string;
+  description: string;
   start: {
     dateTime: Date;
     timeZone: string;
@@ -9,7 +9,7 @@ export interface CalendarEvent {
     dateTime: Date;
     timeZone: string;
   };
-  location: String;
+  location: string;
 }
 
 export interface CalendarEventFromGoogle extends CalendarEvent {
