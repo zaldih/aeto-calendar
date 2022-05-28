@@ -117,12 +117,13 @@ ${event.schedule}
     startDate: Date;
     endDate: Date;
   } {
+    console.log(splitedDocument);
     const index = this.getIndex(splitedDocument, "Realización:") + 1;
     const index2 = this.getIndex(splitedDocument, "Lugar realización") - 1;
 
     const splitTimes = splitedDocument[index2].split(" ").filter(String);
-    const startHour = splitTimes[1].replace("h", ":").trim();
-    const endHour = splitTimes[3].replace("h", ":").trim();
+    const startHour = splitTimes[1].replace("h", ":00").trim();
+    const endHour = splitTimes[3].replace("h", ":00").trim();
 
     const date = splitedDocument[index].split(" ").filter(String);
 
@@ -135,7 +136,7 @@ ${event.schedule}
     const endDate = new Date(`${month} ${day} ${year} ${endHour}`);
 
     // End day is next
-    if (endHour < startHour) {
+    if (endDate.getTime() < startDate.getTime()) {
       endDate.setDate(endDate.getDate() + 1);
     }
 

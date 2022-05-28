@@ -3,10 +3,12 @@ import {
   CalendarEventFromGoogle,
 } from "./calendar/calendar.interface";
 
+import { ADD_HOURS } from "./calendar/time.functions";
 import { AETOEvent } from "./aeto/aeto.interface";
 import { AetoPdfService } from "./aeto/aeto-pdf.service";
 import { AetoService } from "./aeto/aeto.service";
 import { CalendarService } from "./calendar/calendar.service";
+import { basename } from "path";
 import { readdirSync } from "fs";
 
 export class MainController {
@@ -18,16 +20,58 @@ export class MainController {
 
   async init() {
     const urls: string[] = await this.aetoService.getEventsUrl();
+    const filesPaths = await this.downloadEvents(urls);
+    const events = await this.getEventsFromFiles(filesPaths);
+    const calendarResponses = await this.addEventsToCalendar(events);
+  }
 
-    for (let i = 0; i < urls.length; i++) {
-      const url = urls[i];
-      const file = await this.aetoService.downloadFile(url);
-      const event = await this.eventService.getEventFromDocument(file);
-      console.log(event);
-      await this.addEventToCalendar(event).catch((error) =>
-        console.error(error)
+  private async downloadEvents(urls: string[]): Promise<string[]> {
+    console.log("Downloading activities...");
+    return await Promise.all(
+      urls.map(async (url) => {
+        return await this.aetoService.downloadFile(url);
+      })
+    ).then((data) => {
+      console.log(
+        "Activities PDF: ",
+        data.map((path) => basename(path))
       );
-    }
+      console.log("Done");
+      return data;
+    });
+  }
+
+  private async getEventsFromFiles(
+    paths: string[]
+  ): Promise<(void | AETOEvent)[]> {
+    console.log("Parsing activities...");
+    return Promise.all(
+      paths.map(async (path) => {
+        return await this.eventService
+          .getEventFromDocument(path)
+          .catch((error) => {
+            console.error("#addEventsToCalendar", error);
+          });
+      })
+    ).then((data) => {
+      console.log("Activities: ", data);
+      console.log("Done");
+      return data;
+    });
+  }
+
+  private async addEventsToCalendar(events: any[]) {
+    console.log("Adding activities to calendar...");
+    return await Promise.all(
+      events.map(async (event) => {
+        return await this.addEventToCalendar(event).catch((error) =>
+          console.error("#addEventsToCalendar", error)
+        );
+      })
+    ).then((data) => {
+      console.log("Done");
+      return data;
+    });
   }
 
   async test() {
@@ -44,8 +88,8 @@ export class MainController {
   private async addEventToCalendar(event: AETOEvent) {
     const similarExistingEvents = (
       await this.calendarService.get({
-        timeMin: new Date(new Date().setDate(event.startDate.getDate() - 1)),
-        timeMax: new Date(new Date().setDate(event.endDate.getDate() + 1)),
+        timeMin: ADD_HOURS(event.startDate, -1),
+        timeMax: ADD_HOURS(event.endDate, 1),
       })
     ).data.items.filter(
       (calendarEvent: any) => calendarEvent.summary === event.name
@@ -54,7 +98,7 @@ export class MainController {
     // await this.removeDuplicateEvent(similarExistingEvents);
     // If the same event already exist, skip.
     if (similarExistingEvents.length) {
-      console.log(`${event.name} already inserted in Calendar. Skip`);
+      console.log(`[Skip] ${event.name} already inserted in Calendar.`);
       return;
     }
 
@@ -77,7 +121,7 @@ export class MainController {
     };
 
     const eventAdded = await this.calendarService.add(calendarEvent);
-    console.log(`${event.name} added to calendar.`);
+    console.log(`[Added] ${event.name} added to calendar.`);
     return eventAdded;
   }
 

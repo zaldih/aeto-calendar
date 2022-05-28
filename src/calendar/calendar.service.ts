@@ -1,4 +1,5 @@
 import { CalendarEvent } from "./calendar.interface";
+import { TIMEZONE } from "./time.constants";
 
 const { google } = require("googleapis");
 const calendar = google.calendar("v3");
@@ -25,6 +26,7 @@ export class CalendarService {
   add(event: CalendarEvent) {
     return calendar.events.insert({
       auth: this.auth,
+      timeZone: TIMEZONE,
       calendarId: this.calendarId,
       resource: event,
     });
@@ -33,7 +35,7 @@ export class CalendarService {
   get(parameters: any) {
     return calendar.events.list({
       auth: this.auth,
-      timeZone: "Europe/Madrid",
+      timeZone: TIMEZONE,
       calendarId: this.calendarId,
       ...parameters,
     });
@@ -42,6 +44,7 @@ export class CalendarService {
   delete(eventId: string) {
     return calendar.events.delete({
       auth: this.auth,
+      timeZone: TIMEZONE,
       calendarId: this.calendarId,
       eventId,
     });
