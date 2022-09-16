@@ -43,7 +43,7 @@ ${event.schedule}
   private getIndex(array: string[], toSearch: string) {
     const index = array.findIndex((element) => element.includes(toSearch));
     if (index === -1) {
-      console.warn(array);
+      console.warn("Not element finded for: " + toSearch, array);
       throw new Error("Not element finded for: " + toSearch);
     }
     return index;
