@@ -13,10 +13,16 @@ export class AetoService {
   async getEventsUrl(): Promise<string[]> {
     const html = (await this.getHtml(URL_EVENTS)).data;
     const { document } = new JSDOM(html).window;
-    const eventsAnchors = document.querySelectorAll("#id-bloque-2 a");
-    return [...eventsAnchors].map(
-      (elements: any) => `${BASE_URL}${elements.href}`
-    );
+    const eventsRows = document.querySelectorAll("#example tbody tr"); // Yes, the id is #example lmao
+    return [...eventsRows]
+      .map((row: any) => {
+        if (row.childNodes?.[3].firstChild.textContent !== "Alterna en tu Ocio")
+          return "";
+        const path = row.childNodes[1].firstChild.href;
+        if (!path) return "";
+        return `${BASE_URL}${path}`;
+      })
+      .filter((x) => x);
   }
 
   async downloadFile(url: string): Promise<string> {
