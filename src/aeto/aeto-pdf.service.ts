@@ -1,7 +1,7 @@
 import { AETOEvent } from "./aeto.interface";
 import { MONTH } from "../shared/months.constant";
 import { readFileSync } from "fs";
-const pdfParse = require("pdf-parse");
+import pdfParse from "pdf-parse";
 
 export class AetoPdfService {
   constructor() {}
@@ -32,7 +32,7 @@ ${event.description}
 
 ${event.schedule}
 
-👀 ${event.details}
+ ${event.details}
 
 🪑 ${event.places} plazas
 
@@ -90,7 +90,7 @@ ${event.schedule}
   }
 
   private getLocation(splitedDocument: string[]): string {
-    const startIndex = this.getIndex(splitedDocument, "Lugar realización") + 2;
+    const startIndex = this.getIndex(splitedDocument, "Lugar") + 2;
     const endIndex = this.getIndex(splitedDocument, "Información");
 
     const location = this.sliceAndJoin(splitedDocument, startIndex, endIndex);
@@ -106,8 +106,8 @@ ${event.schedule}
   }
 
   private getPlaces(splitedDocument: string[]): number {
-    const startIndex = this.getIndex(splitedDocument, "Horario y plazas") + 1;
-    const endIndex = this.getIndex(splitedDocument, "Lugar realización") - 1;
+    const startIndex = this.getIndex(splitedDocument, "Horario y") + 1;
+    const endIndex = this.getIndex(splitedDocument, "Lugar") - 1;
 
     const places = this.sliceAndJoin(splitedDocument, startIndex, endIndex);
     return +places.replace("plazas", "");
@@ -117,16 +117,23 @@ ${event.schedule}
     startDate: Date;
     endDate: Date;
   } {
-    console.log(splitedDocument);
+    // console.log(splitedDocument);
     const index = this.getIndex(splitedDocument, "Realización:") + 1;
-    const index2 = this.getIndex(splitedDocument, "Lugar realización") - 1;
+    const index2 = this.getIndex(splitedDocument, "Lugar") - 1;
 
     const splitTimes = splitedDocument[index2].split(" ").filter(String);
-    const startHour = splitTimes[1].replace("h", ":00").trim();
-    const endHour = splitTimes[3].replace("h", ":00").trim();
+    let startHour = splitTimes[1].replace("h", ":00").trim();
+    let endHour = splitTimes[3].replace("h", ":00").trim();
+
+    // Check is a correct time format and if not, set a extranger time.
+    startHour = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(startHour)
+      ? startHour
+      : "11:11";
+    endHour = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(endHour)
+      ? endHour
+      : "22:22";
 
     const date = splitedDocument[index].split(" ").filter(String);
-
     //@ts-ignore
     const month = MONTH[date[3]];
     const day = date[1];
