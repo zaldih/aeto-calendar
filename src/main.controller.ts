@@ -22,7 +22,7 @@ export class MainController {
     const urls: string[] = await this.aetoService.getEventsUrl();
     const filesPaths = await this.downloadEvents(urls);
     const events = await this.getEventsFromFiles(filesPaths);
-    const calendarResponses = await this.addEventsToCalendar(events);
+    await this.addEventsToCalendar(events);
   }
 
   private async downloadEvents(urls: string[]): Promise<string[]> {
