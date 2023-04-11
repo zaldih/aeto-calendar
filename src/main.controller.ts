@@ -62,16 +62,12 @@ export class MainController {
 
   private async addEventsToCalendar(events: any[]) {
     console.log("Adding activities to calendar...");
-    return await Promise.all(
-      events.map(async (event) => {
-        return await this.addEventToCalendar(event).catch((error) =>
-          console.error("#addEventsToCalendar", error)
-        );
-      })
-    ).then((data) => {
-      console.log("Done");
-      return data;
-    });
+    for await (const event of events) {
+      await this.addEventToCalendar(event).catch((error) =>
+        console.error("#addEventsToCalendar", error)
+      );
+    }
+    console.log("#addEventsToCalendar done");
   }
 
   async test() {
