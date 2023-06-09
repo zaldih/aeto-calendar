@@ -6,5 +6,5 @@ export interface AETOEvent {
   description: string;
   schedule: string;
   details: string;
-  places: number;
+  places: string;
 }
