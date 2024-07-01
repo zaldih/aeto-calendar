@@ -8,24 +8,28 @@ import { AETOEvent } from "./aeto.interface";
 export class AetoPdfService {
   constructor() {}
 
-  async getEventFromDocument(pdfPatch: string): Promise<AETOEvent> {
-    const buffer = readFileSync(pdfPatch);
-    const data = await pdfParse(buffer);
+  getPdfText(pdfPath: string): Promise<string> {
+    const buffer = readFileSync(pdfPath);
+    return pdfParse(buffer).then((data) => data.text);
+  }
 
-    const documentText: string = data.text;
-    const splitedDocument = documentText
+  cleanPdfText(text: string): string[] {
+    return text
       .split("\n")
       .map((line) => line.replace(/\s+/g, " ").trim())
       .filter((line) => line !== "");
+  }
 
+  getEventFromText(text: string[]): AETOEvent {
+    // console.log({ documentText: JSON.stringify(documentText) });
     const event: AETOEvent = {
-      name: this.getName(splitedDocument),
-      description: this.getDescription(splitedDocument),
-      details: this.getDetails(splitedDocument),
-      location: this.getLocation(splitedDocument),
-      schedule: this.getSchedule(splitedDocument),
-      places: this.getPlaces(splitedDocument),
-      ...this.getEventDate(splitedDocument),
+      name: this.getName(text),
+      description: this.getDescription(text),
+      details: this.getDetails(text),
+      location: this.getLocation(text),
+      schedule: this.getSchedule(text),
+      places: this.getPlaces(text),
+      ...this.getEventDate(text),
     };
 
     return event;
@@ -46,7 +50,9 @@ ${event.schedule}
   }
 
   private getIndex(array: string[], toSearch: string) {
-    const index = array.findIndex((element) => element.includes(toSearch));
+    const index = array.findIndex((element) =>
+      element.toLowerCase().includes(toSearch.toLowerCase()),
+    );
     if (index === -1) {
       console.warn("Not element finded for: " + toSearch, array);
       throw new Error("Not element finded for: " + toSearch);
@@ -78,23 +84,34 @@ ${event.schedule}
   }
 
   private getSchedule(splitedDocument: string[]): string {
-    const startIndex = this.getIndex(splitedDocument, "¿Qué haremos?");
+    const startIndex = this.getIndex(splitedDocument, "¿Qué haremos?") + 1;
     const endIndex = this.getIndex(splitedDocument, "Ten en cuenta");
 
-    const details = this.sliceAndJoin(splitedDocument, startIndex, endIndex);
+    const details = this.sliceAndJoin(
+      splitedDocument,
+      startIndex,
+      endIndex,
+    ).replaceAll(" -", "\n-");
     return details;
   }
 
   private getLocation(splitedDocument: string[]): string {
     const LUGAR_REALIZACION = "Lugar de realización:";
-    const locationIndex = this.getIndex(splitedDocument, LUGAR_REALIZACION);
+    const PUNTO_ENCUENTRO = "encuentro:";
+    let locationIndex: number | null;
+    try {
+      locationIndex = this.getIndex(splitedDocument, LUGAR_REALIZACION);
+    } catch {
+      locationIndex = this.getIndex(splitedDocument, PUNTO_ENCUENTRO);
+    }
+
     const fullText = splitedDocument[locationIndex];
     const location = fullText.replace(LUGAR_REALIZACION, "").trim();
     return location;
   }
 
   private getDetails(splitedDocument: string[]): string {
-    const startIndex = this.getIndex(splitedDocument, "Ten en cuenta");
+    const startIndex = this.getIndex(splitedDocument, "Ten en cuenta") + 1;
     const endIndex = this.getIndex(splitedDocument, "Requisitos");
 
     const details = this.sliceAndJoin(splitedDocument, startIndex, endIndex);
@@ -106,7 +123,7 @@ ${event.schedule}
     const endIndex = this.getIndex(splitedDocument, "Hora de inicio");
 
     const places = this.sliceAndJoin(splitedDocument, startIndex, endIndex);
-    return places;
+    return places + ".";
   }
 
   private getEventDate(splitedDocument: string[]): {
@@ -125,26 +142,30 @@ ${event.schedule}
     const year = inscriptionAndRealization[datesLenght - 1];
 
     // Hora de inicio: 21h Hora finalización: 0h (hora límite de finalización)
-    const index = this.getIndex(splitedDocument, "Hora de inicio:");
+    const index = this.getIndex(splitedDocument, "Hora de inicio");
 
     const splitTimes = splitedDocument[index].split(" ");
-    const aa = (text: string): string => {
-      if (text.includes(":")) {
-        return text.replace("h", "");
-      } else {
-        return text.replace("h", ":00");
-      }
-    };
+    const timeRegex = /(\d{1,2}:\d{2}h|\d{1,2})/g;
+    const times = splitedDocument[index].match(timeRegex);
 
-    let startHour = aa(splitTimes[3]);
-    let endHour = aa(splitTimes[6]);
+    if (times === null) {
+      throw new Error("Could not extract hours from the provided line.");
+    }
+
+    if (times.length === 1) {
+      // No end time. Add to the end of the day.
+      times.push("23:59");
+    }
+
+    let startHour = times[0].match(/:\d{2}/) ? times[0] : times[0] + ":00";
+    let endHour = times[1].match(/:\d{2}/) ? times[1] : times[1] + ":00";
 
     // Check is a correct time format and if not, set a extranger time.
-    startHour = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(startHour)
-      ? startHour
+    startHour = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]/.test(startHour)
+      ? startHour.replaceAll("h", "")
       : "00:00";
-    endHour = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(endHour)
-      ? endHour
+    endHour = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]/.test(endHour)
+      ? endHour.replaceAll("h", "")
       : "23:59";
 
     const startDate = new Date(`${month} ${day} ${year} ${startHour}`);

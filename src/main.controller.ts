@@ -46,13 +46,18 @@ export class MainController {
   ): Promise<(void | AETOEvent)[]> {
     console.log("Parsing activities...");
     return Promise.all(
-      paths.map(async (path) => {
-        return await this.eventService
-          .getEventFromDocument(path)
+      paths.map((path) =>
+        this.eventService
+          .getPdfText(path)
+          .then((pdfText) => {
+            const cleanedText = this.eventService.cleanPdfText(pdfText);
+            console.log({ cleanedText });
+            return this.eventService.getEventFromText(cleanedText);
+          })
           .catch((error) => {
             console.error("#getEventsFromFiles", error);
-          });
-      }),
+          }),
+      ),
     ).then((data) => {
       console.log("Activities: ", data);
       console.log("Done");
@@ -68,17 +73,6 @@ export class MainController {
       );
     }
     console.log("#addEventsToCalendar done");
-  }
-
-  async test() {
-    const files = readdirSync("data");
-    for (let i = 0; i < files.length; i++) {
-      const event = await this.eventService.getEventFromDocument(
-        "data/" + files[i],
-      );
-      console.log(event);
-      await this.addEventToCalendar(event);
-    }
   }
 
   private async addEventToCalendar(event: AETOEvent) {

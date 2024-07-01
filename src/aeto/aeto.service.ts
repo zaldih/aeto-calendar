@@ -14,7 +14,7 @@ export class AetoService {
     const html = (await this.getHtml(URL_EVENTS)).data;
     const { document } = new JSDOM(html).window;
     const linksNodes = document.querySelectorAll(
-      "a[href*='juventud'][href*='ocio'][href$='.pdf']",
+      "tbody a[href*='juventud'][href*='ocio'][href$='.pdf']",
     );
     return [...linksNodes]
       .map((link: any) => {
