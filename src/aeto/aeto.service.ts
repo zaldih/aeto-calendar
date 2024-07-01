@@ -13,7 +13,9 @@ export class AetoService {
   async getEventsUrl(): Promise<string[]> {
     const html = (await this.getHtml(URL_EVENTS)).data;
     const { document } = new JSDOM(html).window;
-    const linksNodes = document.querySelectorAll("a[href*='ocio/ALT']");
+    const linksNodes = document.querySelectorAll(
+      "a[href*='juventud'][href*='ocio'][href$='.pdf']",
+    );
     return [...linksNodes]
       .map((link: any) => {
         const path = link.href;

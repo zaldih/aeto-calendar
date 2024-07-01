@@ -19,7 +19,7 @@ export class CalendarService {
       this.credentials.client_email,
       null,
       this.credentials.private_key,
-      scope
+      scope,
     );
   }
 

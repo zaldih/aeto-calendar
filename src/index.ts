@@ -19,7 +19,7 @@ function bootstrap() {
   const mainController = new MainController(
     aetoService,
     aetoPdfService,
-    calendarService
+    calendarService,
   );
 
   mainController.init();
