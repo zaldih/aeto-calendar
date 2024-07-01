@@ -51,7 +51,7 @@ export class MainController {
           .getPdfText(path)
           .then((pdfText) => {
             const cleanedText = this.eventService.cleanPdfText(pdfText);
-            console.log({ cleanedText });
+            // console.log({ cleanedText });
             return this.eventService.getEventFromText(cleanedText);
           })
           .catch((error) => {
