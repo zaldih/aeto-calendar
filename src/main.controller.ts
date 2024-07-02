@@ -10,12 +10,14 @@ import {
 } from "./calendar/calendar.interface";
 import { CalendarService } from "./calendar/calendar.service";
 import { ADD_HOURS } from "./calendar/time.functions";
+import { NotificationsService } from "./notifications/notifications.service";
 
 export class MainController {
   constructor(
     private aetoService: AetoService,
     private eventService: AetoPdfService,
     private calendarService: CalendarService,
+    private notificationsService: NotificationsService,
   ) {}
 
   async init() {
@@ -112,6 +114,18 @@ export class MainController {
 
     const eventAdded = await this.calendarService.add(calendarEvent);
     console.log(`[Added] ${event.name} added to calendar.`);
+    await this.notificationsService
+      .send({
+        title: `${event.name}`,
+        body: `Start: ${event.startDate.toLocaleString()}`,
+        tags: "calendar",
+      })
+      .catch(() =>
+        console.warn(
+          "Error sending notification to " +
+            this.notificationsService.endpointUrl,
+        ),
+      );
     return eventAdded;
   }
 
