@@ -7,7 +7,8 @@
   "scripts": {
     "start": "ts-node src/run.ts",
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "postinstall": "tsc"
   },
   "keywords": [],
   "author": "zaldih",
