@@ -1,6 +1,6 @@
 {
   "name": "@zaldih/aeto-calendar",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Automatically add events from 'Alterna en tu Ocio' to Google Calendar",
   "main": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
