@@ -47,3 +47,5 @@ export async function getAetoEvents(): Promise<AETOEvent[]> {
 export function getAndAddEventsToCalendar() {
   return mainController.getAndAddEventsToCalendar();
 }
+
+export * from "./aeto/aeto.interface";
