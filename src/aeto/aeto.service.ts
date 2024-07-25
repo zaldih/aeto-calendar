@@ -28,7 +28,7 @@ export class AetoService {
   async downloadFile(url: string): Promise<string> {
     const splitedUrl = url.split("/");
     const fileName = splitedUrl[splitedUrl.length - 1];
-    const path = resolve("data", fileName);
+    const path = resolve("data", "aeto-files", fileName);
     const writer = createWriteStream(path);
 
     const response = await axios({

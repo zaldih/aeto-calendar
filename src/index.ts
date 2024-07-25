@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync } from "fs";
 
 import { AetoPdfService } from "./aeto/aeto-pdf.service";
+import { AETOEvent } from "./aeto/aeto.interface";
 import { AetoService } from "./aeto/aeto.service";
 import { CalendarService } from "./calendar/calendar.service";
 import { MainController } from "./main.controller";
@@ -8,11 +9,18 @@ import { NotificationsService } from "./notifications/notifications.service";
 
 require("dotenv").config();
 
-console.log("Start");
 checkPrerequirements();
-bootstrap();
+const mainController = getController();
 
-function bootstrap() {
+function checkPrerequirements() {
+  const dataFolder = "data/aeto-files";
+  if (!existsSync(dataFolder)) {
+    mkdirSync(dataFolder, { recursive: true });
+    console.log("data folder created");
+  }
+}
+
+function getController() {
   const aetoService = new AetoService();
   const aetoPdfService = new AetoPdfService();
   const calendarService = new CalendarService();
@@ -20,20 +28,22 @@ function bootstrap() {
     process.env.NTFY_ENDPOINT || "",
   );
 
-  const mainController = new MainController(
+  return new MainController(
     aetoService,
     aetoPdfService,
     calendarService,
     notificationsService,
   );
-
-  mainController.init();
 }
 
-function checkPrerequirements() {
-  const dataFolder = "data";
-  if (!existsSync(dataFolder)) {
-    mkdirSync(dataFolder);
-    console.log("data folder created");
-  }
+/** Download all published activities for analysis.
+    Returns the list of events. 
+**/
+export async function getAetoEvents(): Promise<AETOEvent[]> {
+  const result = await mainController.getEvents();
+  return result;
+}
+
+export function getAndAddEventsToCalendar() {
+  return mainController.getAndAddEventsToCalendar();
 }

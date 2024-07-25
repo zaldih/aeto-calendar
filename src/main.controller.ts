@@ -20,11 +20,15 @@ export class MainController {
     private notificationsService: NotificationsService,
   ) {}
 
-  async init() {
+  async getAndAddEventsToCalendar() {
+    const events = await this.getEvents();
+    await this.addEventsToCalendar(events);
+  }
+
+  async getEvents() {
     const urls: string[] = await this.aetoService.getEventsUrl();
     const filesPaths = await this.downloadEvents(urls);
-    const events = await this.getEventsFromFiles(filesPaths);
-    await this.addEventsToCalendar(events);
+    return this.getEventsFromFiles(filesPaths);
   }
 
   private async downloadEvents(urls: string[]): Promise<string[]> {
@@ -43,28 +47,30 @@ export class MainController {
     });
   }
 
-  private async getEventsFromFiles(
-    paths: string[],
-  ): Promise<(void | AETOEvent)[]> {
+  private async getEventsFromFiles(paths: string[]): Promise<AETOEvent[]> {
     console.log("Parsing activities...");
-    return Promise.all(
-      paths.map((path) =>
-        this.eventService
-          .getPdfText(path)
-          .then((pdfText) => {
-            const cleanedText = this.eventService.cleanPdfText(pdfText);
-            // console.log({ cleanedText });
-            return this.eventService.getEventFromText(cleanedText);
-          })
-          .catch((error) => {
-            console.error("#getEventsFromFiles", error);
-          }),
-      ),
-    ).then((data) => {
-      console.log("Activities: ", data);
-      console.log("Done");
-      return data;
-    });
+
+    const events = await Promise.all(
+      paths.map(async (path) => {
+        try {
+          const pdfText = await this.eventService.getPdfText(path);
+          const cleanedText = this.eventService.cleanPdfText(pdfText);
+          return this.eventService.getEventFromText(cleanedText);
+        } catch (error) {
+          console.error("#getEventsFromFiles", error);
+          return null;
+        }
+      }),
+    );
+
+    const filteredEvents = events.filter(
+      (event): event is AETOEvent => event !== null,
+    );
+
+    console.log("Activities: ", filteredEvents);
+    console.log("Done");
+
+    return filteredEvents;
   }
 
   private async addEventsToCalendar(events: any[]) {

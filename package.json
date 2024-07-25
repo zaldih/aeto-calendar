@@ -4,7 +4,7 @@
   "description": "Automatically add events from 'Alterna en tu Ocio' to Google Calendar",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/index.ts",
+    "start": "ts-node src/run.ts",
     "test": "jest"
   },
   "keywords": [],
