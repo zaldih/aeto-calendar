@@ -12,6 +12,10 @@
   "keywords": [],
   "author": "zaldih",
   "license": "copyright",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "public"
+  },
   "dependencies": {
     "axios": "^0.27.2",
     "dotenv": "^16.0.1",
