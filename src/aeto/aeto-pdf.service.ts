@@ -2,7 +2,6 @@ import { readFileSync } from "fs";
 import pdfParse from "pdf-parse";
 
 import { MONTH } from "../shared/months.constant";
-
 import { AETOEvent } from "./aeto.interface";
 
 export class AetoPdfService {

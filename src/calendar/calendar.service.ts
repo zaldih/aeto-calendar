@@ -6,9 +6,9 @@ const calendar = google.calendar("v3");
 
 export class CalendarService {
   private credentials = JSON.parse(
-    (process.env.GOOGLE_CREDENTIALS || "{}") + "",
+    (process.env["GOOGLE_CREDENTIALS"] || "{}") + "",
   );
-  private calendarId: string = process.env.CALENDAR_ID + "";
+  private calendarId: string = process.env["CALENDAR_ID"] + "";
   private auth: any;
 
   constructor() {

@@ -25,7 +25,7 @@ function getController() {
   const aetoPdfService = new AetoPdfService();
   const calendarService = new CalendarService();
   const notificationsService = new NotificationsService(
-    process.env.NTFY_ENDPOINT || "",
+    process.env["NTFY_ENDPOINT"] || "",
   );
 
   return new MainController(
